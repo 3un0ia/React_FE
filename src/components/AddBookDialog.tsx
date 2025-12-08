@@ -51,8 +51,8 @@ export function AddBookDialog({ book, onClose, onSave }: AddBookDialogProps) {
         // 1. URL 및 Method 결정
         const method = book ? "PUT" : "POST";
         const url = book
-            ? `http://localhost:8080/api/book/${book.id}`  // 수정
-            : `http://localhost:8080/api/book`;            // 등록
+            ? `http://localhost:8080/book/${book.id}`  // 수정
+            : `http://localhost:8080/book`;            // 등록
 
         try {
             // 2. API 호출

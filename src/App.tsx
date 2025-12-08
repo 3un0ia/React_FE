@@ -34,7 +34,7 @@ export default function App() {
     // 도서 목록 불러오기 (API)
     const fetchBooks = async () => {
         try {
-            const res = await fetch("http://localhost:8080/api/book");
+            const res = await fetch("http://localhost:8080/book");
             if (!res.ok) throw new Error("Failed to fetch books");
             const data = await res.json();
             // 날짜 변환 등 데이터 전처리
@@ -103,10 +103,28 @@ export default function App() {
 
     const handleLogin = (user: User) => setCurrentUser(user);
 
-    const handleLogout = () => {
+    const handleLogout = async () => {
+        // ✅ [추가] 서버에 로그아웃 요청 보내기
+        try {
+            const token = localStorage.getItem('accessToken');
+            if (token) {
+                await fetch("http://localhost:8080/user/logout", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${token}`
+                    }
+                });
+            }
+        } catch (error) {
+            console.error("로그아웃 요청 실패 (무시하고 진행)", error);
+        }
+
+        // 기존 로직 (로컬 정리)
         setCurrentUser(null);
         setIsSelectionMode(false);
         setSelectedBookIds([]);
+        localStorage.removeItem('accessToken'); // 토큰 삭제
     };
 
     const handlePasswordChange = (newPassword: string) => {
@@ -132,7 +150,7 @@ export default function App() {
     // 도서 삭제 (API 연동)
     const handleDeleteBook = async (id: string) => {
         try {
-            const res = await fetch(`http://localhost:8080/api/book/${id}`, { method: "DELETE" });
+            const res = await fetch(`http://localhost:8080/book/${id}`, { method: "DELETE" });
             if (!res.ok) throw new Error("삭제 실패");
             alert("도서가 삭제되었습니다.");
             fetchBooks(); // 목록 갱신
@@ -149,7 +167,7 @@ export default function App() {
 
         try {
             for (const bookId of selectedBookIds) {
-                await fetch(`http://localhost:8080/api/book/${bookId}`, { method: "DELETE" });
+                await fetch(`http://localhost:8080/book/${bookId}`, { method: "DELETE" });
             }
             alert("선택한 도서가 삭제되었습니다.");
             fetchBooks();

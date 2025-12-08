@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Book, User, Review } from '../types'; // types.ts에서 타입 가져오기
 import { X, BookOpen, User as UserIcon, Calendar, Hash, Tag, Star, MessageSquare, Send, Edit2, Trash2, Check, XCircle, Package, Plus, Minus, ShoppingBag, CreditCard } from 'lucide-react';
 
@@ -21,7 +21,7 @@ interface CommentResponse {
 }
 
 export function BookDetailDialog({
-                                     book,
+                                     book: initialBook,
                                      currentUser,
                                      onClose,
                                      onUpdateBook,
@@ -35,9 +35,48 @@ export function BookDetailDialog({
     const [editingReviewId, setEditingReviewId] = useState<string | null>(null);
     const [editingReviewText, setEditingReviewText] = useState('');
 
+    // ⭐ [핵심] 상세 정보를 저장할 State (초기값은 목록 정보)
+    const [book, setBook] = useState<Book>(initialBook);
+    const [isLoading, setIsLoading] = useState(false); // 로딩 상태
+
     // ⭐ [추가] 구매 수량 State 및 가격 설정
     const [purchaseQuantity, setPurchaseQuantity] = useState(1);
     const BOOK_PRICE = book.price || 15000;
+
+// ⭐ [추가] 상세 정보 API 호출 (GET /book/{id})
+    useEffect(() => {
+        const fetchBookDetail = async () => {
+            setIsLoading(true);
+            try {
+                // 목록에 있던 ID로 최신 상세 정보를 가져옴
+                const response = await fetch(`http://localhost:8080/book/${initialBook.id}`);
+
+                if (response.ok) {
+                    const data = await response.json();
+
+                    // 날짜 변환 등 데이터 가공
+                    const parsedBook = {
+                        ...data,
+                        createdAt: new Date(data.createdAt),
+                        ratings: data.ratings || [],
+                        reviews: data.reviews?.map((r: any) => ({
+                            ...r,
+                            timestamp: new Date(r.timestamp)
+                        })) || [],
+                        stock: data.stock || 0
+                    };
+
+                    setBook(parsedBook); // 최신 데이터로 업데이트 (화면의 book이 바뀜)
+                }
+            } catch (error) {
+                console.error("상세 정보 로딩 실패:", error);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        fetchBookDetail();
+    }, [initialBook.id]);
 
     // 날짜 포맷 함수
     const formatDate = (date: Date | string) => {
@@ -84,7 +123,7 @@ export function BookDetailDialog({
                 return;
             }
 
-            const response = await fetch(`http://localhost:8080/api/books/${book.id}/comments`, {
+            const response = await fetch(`http://localhost:8080/comment/${book.id}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -135,7 +174,7 @@ export function BookDetailDialog({
             const token = localStorage.getItem('accessToken');
             if (!token) return;
 
-            const response = await fetch(`http://localhost:8080/api/comments/${editingReviewId}`, {
+            const response = await fetch(`http://localhost:8080/comment/${editingReviewId}`, {
                 method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json',
@@ -171,7 +210,7 @@ export function BookDetailDialog({
             const token = localStorage.getItem('accessToken');
             if (!token) return;
 
-            const response = await fetch(`http://localhost:8080/api/comments/${reviewId}`, {
+            const response = await fetch(`http://localhost:8080/comment/${reviewId}`, {
                 method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json',
