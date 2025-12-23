@@ -4,8 +4,8 @@
 // ✅ types.ts에 정의된 TokenRefreshResponse를 임포트합니다.
 import {Book, TokenRefreshResponse, User} from '../types';
 // const BASE_URL = 'http://localhost:8080';
-// export const BASE_URL = "http://k8s-default-a081004i-7760ac9cb9-369116095.us-east-1.elb.amazonaws.com";
-export const BASE_URL = "/api";
+export const BASE_URL = "http://k8s-default-a081004i-7760ac9cb9-369116095.us-east-1.elb.amazonaws.com";
+// export const BASE_URL = "/api";
 
 // ⭐ API 요청을 가로채서 토큰을 붙여주는 핵심 클라이언트
 export async function apiFetch<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
