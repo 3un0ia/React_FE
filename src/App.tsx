@@ -110,7 +110,7 @@ export default function App() {
         try {
             const token = localStorage.getItem('accessToken');
             if (token) {
-                await fetch("http://localhost:8080/user/logout", {
+                await fetch(baseUrl + "/user/logout", {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
@@ -167,7 +167,7 @@ export default function App() {
 
         try {
             for (const bookId of selectedBookIds) {
-                await fetch(`http://localhost:8080/book/${bookId}`, { method: "DELETE" });
+                await fetch(baseUrl + `/book/${bookId}`, { method: "DELETE" });
             }
             alert("선택한 도서가 삭제되었습니다.");
             fetchBooks();
